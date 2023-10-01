@@ -10,6 +10,6 @@ services:
     volumes: 
       #share your x11 socket and permissions to the container
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
-      - ./ws/:/ros_ws # mount the current directory to the container workspace
+      - ./ws/:/ws # mount the current directory to the container workspace
     stdin_open: true 
     tty: true
