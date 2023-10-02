@@ -5,14 +5,9 @@ This is a reactive wall following robot that uses a laser scanner to detect obst
 
 ## Instructions
 
-Build the docker image using:
+Run the docker container using:
 ```bash
-docker build -t ros2-gazebo .
-```
-
-Run the docker image using:
-```bash
-docker compose up -d
+docker compose up -d (--build if needed)``
 ```
 
 Exec using:

@@ -2,7 +2,7 @@ version: '2'
 
 services:
   ros-it:
-    image: ros2-gazebo
+    build: .
     container_name: ros-it
     environment:
       - "DISPLAY=${DISPLAY}"
