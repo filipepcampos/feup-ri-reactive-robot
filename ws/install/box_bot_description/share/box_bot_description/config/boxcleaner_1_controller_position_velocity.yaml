@@ -1,0 +1,21 @@
+boxcleaner_1:
+  controller_manager:
+    ros__parameters:
+      update_rate: 100  # Hz
+
+      velocity_controller:
+        type: velocity_controllers/JointGroupVelocityController
+
+      joint_state_broadcaster:
+        type: joint_state_broadcaster/JointStateBroadcaster
+
+  velocity_controller:
+    ros__parameters:
+      joints:
+        - boxcleaner_1_brush_model_link_joint
+      interface_name: velocity
+      command_interfaces:
+        - velocity
+      state_interfaces:
+        - position
+        - velocity
