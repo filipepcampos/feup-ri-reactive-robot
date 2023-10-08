@@ -1,11 +1,14 @@
+import math
+
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist, Pose2D
 from sensor_msgs.msg import LaserScan
 from nav_msgs.msg import Odometry
-
 import numpy as np
 
+def rads_to_deg(rads: float) -> float:
+    return rads * 180 / math.pi
 
 class RobotMovement(Node):
     def __init__(self, robot_name: str) -> None:
@@ -35,26 +38,62 @@ class RobotMovement(Node):
         self.pub.publish(vel)
 
 
-    def subScan(self) -> None:
+    def sub_scan(self) -> None:
         print(f"Subscribing to /{self.robot_name}/laser_scan")
-        sub = self.create_subscription(LaserScan, f"/{self.robot_name}/laser_scan", self._scanCallback, 10)
+        sub = self.create_subscription(LaserScan, f"/{self.robot_name}/laser_scan", self._scan_callback, 10)
 
 
-    def _scanCallback(self, msg: LaserScan) -> None:
+    def _scan_callback(self, msg: LaserScan) -> None:
         angle_min = msg.angle_min
         angle_increment = msg.angle_increment
 
         ranges = np.array(msg.ranges)
-        min_index = np.argmin(ranges)
-        print(f"Min index: {min_index}\nMin angle: {angle_min + min_index * angle_increment}\nMin value: {ranges[min_index]}")
+        closest_point_index = np.argmin(ranges)
+        closest_point_angle = angle_min + closest_point_index * angle_increment
+        closest_point_distance = ranges[closest_point_index]
+        print(f"Min index: {closest_point_index}")
+        print(f"Min angle: {rads_to_deg(angle_min + closest_point_index * angle_increment)}º")
+        print(f"Min distance: {closest_point_distance}\n------------------")
 
+        closest_lateral_sign = 1 if closest_point_angle > 0 else -1 
+        
+        lateral_angle = closest_lateral_sign * math.pi/2
+        lateral_index = int((lateral_angle - angle_min) / angle_increment)
+
+        #angle_between_point_and_lateral = abs(lateral_angle - closest_point_angle)
+
+        lateral_distance = ranges[lateral_index]
+        print(f"Lateral distance: {lateral_distance} (Side={'left' if closest_lateral_sign > 0 else 'right'})")
+        #print(f"Angle between point and lateral: {rads_to_deg(angle_between_point_and_lateral)}º\n------------------")
+
+        if abs(closest_point_angle - math.pi/2) < 0.1:
+            closest_point_angle += 0.1
+
+        alpha = (abs(closest_point_angle)- math.pi/2)  # This does not need ABS. Don't know why????
+        target_distance = 0.40
+        relative_distance = closest_point_distance - target_distance
+        path_sign = np.sign(relative_distance) #inside/outside target distance boundary
+        steering_sign = closest_lateral_sign * path_sign
+        
+
+        new_ang_vel = steering_sign * alpha # + relative_distance/10
+
+        # Print variables
+        print(f"Alpha: {rads_to_deg(alpha)}º")
+        print(f"Path sign: {path_sign}")
+        print(f"Steering sign: {steering_sign}")
+        print(f"New angular velocity: {rads_to_deg(new_ang_vel)}º/s\n------------------")
+        
+
+        k = 0.7
+        self.change_vel(0.4, new_ang_vel * k)
 
 
 def main(args=None):
     rclpy.init(args=args)
 
     robot_movement = RobotMovement("box_bot")
-    robot_movement.subScan()
+    robot_movement.sub_scan()
 
 
     rclpy.spin(robot_movement)
