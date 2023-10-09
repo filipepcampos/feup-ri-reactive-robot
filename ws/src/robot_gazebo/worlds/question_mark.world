@@ -36,6 +36,11 @@
       <elevation>0</elevation>
       <heading_deg>0</heading_deg>
     </spherical_coordinates>
+    <gui>
+      <grid>
+        <cell_count>100</cell_count>
+      </grid>
+    </gui>
     <model name='ground_plane'>
       <static>1</static>
       <link name='link'>
@@ -90,48 +95,5 @@
     <include>
         <uri>model://question_mark</uri>
     </include>
-    <model name='Floor'>
-      <link name='main'>
-        <pose frame=''>0 0 0.01 0 -0 0</pose>
-        <collision name='main_Collision'>
-          <geometry>
-            <box>
-              <size>200 200 0.01</size>
-            </box>
-          </geometry>
-          <max_contacts>10</max_contacts>
-          <surface>
-            <contact>
-              <ode/>
-            </contact>
-            <bounce/>
-            <friction>
-              <torsional>
-                <ode/>
-              </torsional>
-              <ode/>
-            </friction>
-          </surface>
-        </collision>
-        <visual name='main_Visual'>
-          <geometry>
-            <box>
-              <size>200 200 0.01</size>
-            </box>
-          </geometry>
-          <material>
-            <script>
-              <uri>model://Floor/materials/scripts</uri>
-              <uri>model://Floor/materials/textures</uri>
-              <name>floor</name>
-            </script>
-          </material>
-        </visual>
-        <self_collide>0</self_collide>
-        <kinematic>0</kinematic>
-      </link>
-      <static>1</static>
-      <pose frame=''>0.427393 -0.806766 0 0 -0 0</pose>
-    </model>
   </world>
 </sdf>

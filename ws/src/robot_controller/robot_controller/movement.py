@@ -85,8 +85,8 @@ class RobotMovement(Node):
         print(f"New angular velocity: {rads_to_deg(new_ang_vel)}º/s\n------------------")
         
 
-        k = 0.7
-        self.change_vel(0.4, new_ang_vel * k)
+        k = 2.0
+        self.change_vel(1.0, new_ang_vel * k)
 
 
 def main(args=None):
@@ -104,4 +104,3 @@ def main(args=None):
 if __name__ == "__main__":
     main()
 
-    

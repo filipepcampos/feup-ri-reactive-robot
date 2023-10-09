@@ -10,7 +10,7 @@ from ament_index_python.packages import get_package_prefix
 
 def generate_launch_description():
     pkg_gazebo_ros = get_package_share_directory("gazebo_ros")
-    pkg_box_bot_gazebo = get_package_share_directory("my_box_bot_gazebo")
+    pkg_box_bot_gazebo = get_package_share_directory("robot_gazebo")
 
     description_package_name = "box_bot_description"
     install_dir = get_package_prefix(description_package_name)
@@ -43,7 +43,7 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "world",
                 default_value=[
-                    os.path.join(pkg_box_bot_gazebo, "worlds", "box_bot_empty.world"),
+                    os.path.join(pkg_box_bot_gazebo, "worlds", "question_mark.world"),
                     "",
                 ],
                 description="SDF world file",
