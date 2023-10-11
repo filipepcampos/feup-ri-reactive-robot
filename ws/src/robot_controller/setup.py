@@ -18,6 +18,6 @@ setup(
     license="TODO: License declaration",
     tests_require=["pytest"],
     entry_points={
-        "console_scripts": ["movement = robot_controller.movement:main"],
+        "console_scripts": ["movement = robot_controller.movement:main", "logger = robot_controller.logger:main"],
     },
 )

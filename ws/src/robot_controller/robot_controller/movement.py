@@ -32,6 +32,17 @@ def get_closest_point(msg: LaserScan) -> LaserPoint:
     )
     return point
 
+def get_average_point(msg: LaserScan) -> LaserPoint:
+    closest_point = get_closest_point(msg)
+    forward_point_index = int(len(msg.ranges)/2)
+    if msg.ranges[forward_point_index] < 999999 and msg.ranges[forward_point_index] < closest_point.distance + 1.0:
+        return LaserPoint(
+            index=closest_point.index,
+            distance=closest_point.distance,
+            angle=(closest_point.angle)/2,
+        )
+    return closest_point
+
 
 def get_closest_lateral_point(
     msg: LaserScan, closest_point: LaserPoint
@@ -74,7 +85,7 @@ class RobotMovement(Node):
         )
 
     def _scan_callback(self, msg: LaserScan) -> None:
-        closest_point = get_closest_point(msg)
+        closest_point = get_average_point(msg)
         print(f"Closest point ({closest_point})")
 
         lateral_point = get_closest_lateral_point(
