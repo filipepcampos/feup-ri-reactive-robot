@@ -58,20 +58,16 @@ def get_closest_lateral_point(
 
 
 class RobotMovement(Node):
-    def __init__(self, robot_name: str) -> None:
+    def __init__(self, robot_name: str, target_distance : float) -> None:
         super().__init__("asdf")
         self.get_logger().info("Creacted node")
 
         self.robot_name = robot_name
         self.vel = Twist()
+        self.target_distance = target_distance
 
-        self.pub = self.create_publisher(Twist, f"/{robot_name}/cmd_vel", 1)
-
-        # if CTurtle.doOdometry:
-        #     print('"seq","sec","x","y"')
-        #     rospy.Subscriber(
-        #         "/odometry/ground_truth", Odometry, self._odometryGroundTruth
-        #     )
+        self.pub = self.create_publisher(Twist, f"/{robot_name}/cmd_vel", 1) 
+ 
 
     def change_vel(self, linear: float, angular: float) -> None:
         self.vel.linear.x = linear
@@ -83,30 +79,60 @@ class RobotMovement(Node):
         sub = self.create_subscription(
             LaserScan, f"/{self.robot_name}/laser_scan", self._scan_callback, 10
         )
-
-    def _scan_callback(self, msg: LaserScan) -> None:
-        closest_point = get_average_point(msg)
-        print(f"Closest point ({closest_point})")
-
-        lateral_point = get_closest_lateral_point(
-            msg, closest_point
-        )  # Probably useless?
-        print(f"Closest lateral point ({lateral_point})")
-
-        closest_lateral_sign = 1 if closest_point.angle > 0 else -1
+    
+    def _found_wall(self, msg: LaserScan) -> bool: 
+        return np.sum(np.isinf(msg.ranges)) != len(msg.ranges)
         
-        if abs(closest_point.angle - math.pi / 2) < 0.1:
-            closest_point.angle += 0.1
+    def _stop_condition(self, msg: LaserScan, closest_point: LaserPoint) -> bool:
+        ranges = np.array(msg.ranges)
+        print(f"Ranges: {ranges}")
+        # stopping conditions 
+        # at leat half of the values are inf
+        if np.sum(np.isinf(ranges)) < len(ranges)/2:
+           return False
 
+        wall_values = np.where(ranges < 999999)[0]
+        print(f"Wall values: {wall_values}")
+        if len(wall_values) < 2:
+            return False
+        
+       
+        point_1_index = wall_values[0]
+        point_2_index = wall_values[-1]
+        
+        create_point = lambda idx: LaserPoint(
+                index=idx,
+                distance=ranges[idx],
+                angle=msg.angle_min + idx * msg.angle_increment,
+                )
+        
+        point_1, point_2 = (create_point(idx) for idx in [point_1_index, point_2_index])
+
+        # if they are not in the same side of the closest point
+        if np.sign(point_1.angle) != np.sign(point_2.angle) or np.sign(point_1.angle) != np.sign(closest_point.angle):
+            return False
+
+        # get the angle between closest point and the other two
+        angle_1 = abs(point_1.angle - closest_point.angle)
+        angle_2 = abs(point_2.angle - closest_point.angle)
+
+        wall_size = math.sin(angle_1) * point_1.distance + math.sin(angle_2) * point_2.distance
+        
+        self.get_logger().info(f"Angle 1: {rads_to_deg(angle_1)}")
+        self.get_logger().info(f"Angle 2: {rads_to_deg(angle_2)}")
+        self.get_logger().info(f"Wall size: {wall_size}")
+
+        return abs(wall_size - 4) < 0.5
+
+    def _compute_angular_velocity(self, msg: LaserScan, closest_point: LaserPoint) -> float:
         alpha = (
             abs(closest_point.angle) - math.pi / 2
         )  # This does not need ABS. Don't know why????
+ 
+        closest_lateral_sign = 1 if closest_point.angle > 0 else -1
 
-        target_distance = 0.40
-        relative_distance = closest_point.distance - target_distance
-        path_sign = np.sign(
-            relative_distance
-        )  # inside/outside target distance boundary
+        relative_distance = closest_point.distance - self.target_distance
+        path_sign = np.sign(relative_distance)  # inside/outside boundary
         steering_sign = closest_lateral_sign * path_sign
 
         new_ang_vel = steering_sign * alpha  # + relative_distance/10
@@ -119,14 +145,37 @@ class RobotMovement(Node):
             f"New angular velocity: {rads_to_deg(new_ang_vel)}º/s\n------------------"
         )
 
-        k = 2.0
-        self.change_vel(1.0, new_ang_vel * k)
+        return new_ang_vel
+
+    def _scan_callback(self, msg: LaserScan) -> None:
+        closest_point = get_closest_point(msg)
+        print(f"Closest point ({closest_point})")
+
+        lateral_point = get_closest_lateral_point(
+            msg, closest_point
+        )  # Probably useless?
+        print(f"Closest lateral point ({lateral_point})")
+
+        if abs(closest_point.angle - math.pi / 2) < 0.1:
+            closest_point.angle += 0.1
+
+        if self._stop_condition(msg, closest_point):
+            self.get_logger().info("Stopping")
+            linear = 0.0
+            new_ang_vel = 0.0
+        else:
+            k = 2.0
+            linear = 1.0
+            new_ang_vel = self._compute_angular_velocity(msg, closest_point) * k
+
+
+        self.change_vel(linear, new_ang_vel)
 
 
 def main(args=None):
     rclpy.init(args=args)
 
-    robot_movement = RobotMovement("box_bot")
+    robot_movement = RobotMovement("box_bot", 1)
     robot_movement.sub_scan()
 
     rclpy.spin(robot_movement)
