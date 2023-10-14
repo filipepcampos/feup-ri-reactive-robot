@@ -105,14 +105,15 @@ class RobotMovement(Node):
             relative_distance = closest_point.distance - self.target_distance
 
             linear_vel = 1.0
-            delta_angle = closest_point.angle - math.pi/2
+            direction = 1 if closest_point.angle > 0 else -1
+            delta_angle = closest_point.angle -  direction * math.pi/2
             print(f"Closest angle: {closest_point.angle} ({rads_to_deg(closest_point.angle)}º)")
             print(f"Delta angle: {delta_angle} ({rads_to_deg(delta_angle)}º)")
             print(f"Relative distance: {relative_distance} ({closest_point.distance} - {self.target_distance})")
             
-            direction = 1 if closest_point.angle > 0 else -1
+            
 
-            angular_vel = direction * (self.k1 * relative_distance + self.k2 * delta_angle)
+            angular_vel = self.k1 * relative_distance + self.k2 * delta_angle
         self.change_vel(
             linear=linear_vel, 
             angular=angular_vel
