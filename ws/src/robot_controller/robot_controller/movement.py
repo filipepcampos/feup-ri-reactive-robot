@@ -17,6 +17,8 @@ class LaserPoint:
         self.angle = angle
         self.index = index
         self.distance = distance
+        self.x = distance * math.cos(angle)
+        self.y = distance * math.sin(angle)
 
     def __str__(self) -> str:
         return f"index: {self.index}, distance: {self.distance}, angle: {self.angle}"
@@ -59,19 +61,26 @@ def get_closest_lateral_point(
 
 class RobotMovement(Node):
     def __init__(self, robot_name: str) -> None:
-        super().__init__("asdf")
+        super().__init__("robot_controller")
+        self.declare_parameters(
+            namespace='',
+            parameters=[
+                ('target_distance', 1.0),
+                ('k1', 1.0),
+                ('k2', 1.0),
+            ]
+        )
+
         self.get_logger().info("Creacted node")
+
+        self.target_distance = self.get_parameter("target_distance").get_parameter_value().double_value
+        self.k1 = self.get_parameter("k1").get_parameter_value().double_value
+        self.k2 = self.get_parameter("k2").get_parameter_value().double_value
 
         self.robot_name = robot_name
         self.vel = Twist()
 
         self.pub = self.create_publisher(Twist, f"/{robot_name}/cmd_vel", 1)
-
-        # if CTurtle.doOdometry:
-        #     print('"seq","sec","x","y"')
-        #     rospy.Subscriber(
-        #         "/odometry/ground_truth", Odometry, self._odometryGroundTruth
-        #     )
 
     def change_vel(self, linear: float, angular: float) -> None:
         self.vel.linear.x = linear
@@ -84,43 +93,69 @@ class RobotMovement(Node):
             LaserScan, f"/{self.robot_name}/laser_scan", self._scan_callback, 10
         )
 
+    def _stop(self, msg: LaserScan) -> bool:
+        return False
+
     def _scan_callback(self, msg: LaserScan) -> None:
-        closest_point = get_average_point(msg)
-        print(f"Closest point ({closest_point})")
+        if self._stop(msg):
+            linear_vel = 0.0
+            angular_vel = 0.0
+        else:
+            closest_point = get_closest_point(msg)
+            relative_distance = closest_point.distance - self.target_distance
 
-        lateral_point = get_closest_lateral_point(
-            msg, closest_point
-        )  # Probably useless?
-        print(f"Closest lateral point ({lateral_point})")
+            linear_vel = 1.0
+            delta_angle = closest_point.angle - math.pi/2
+            print(f"Closest angle: {closest_point.angle} ({rads_to_deg(closest_point.angle)}º)")
+            print(f"Delta angle: {delta_angle} ({rads_to_deg(delta_angle)}º)")
+            print(f"Relative distance: {relative_distance} ({closest_point.distance} - {self.target_distance})")
+            
+            direction = 1 if closest_point.angle > 0 else -1
 
-        closest_lateral_sign = 1 if closest_point.angle > 0 else -1
-        
-        if abs(closest_point.angle - math.pi / 2) < 0.1:
-            closest_point.angle += 0.1
-
-        alpha = (
-            abs(closest_point.angle) - math.pi / 2
-        )  # This does not need ABS. Don't know why????
-
-        target_distance = 0.40
-        relative_distance = closest_point.distance - target_distance
-        path_sign = np.sign(
-            relative_distance
-        )  # inside/outside target distance boundary
-        steering_sign = closest_lateral_sign * path_sign
-
-        new_ang_vel = steering_sign * alpha  # + relative_distance/10
-
-        # Print variables
-        print(f"Alpha: {rads_to_deg(alpha)}º")
-        print(f"Path sign: {path_sign}")
-        print(f"Steering sign: {steering_sign}")
-        print(
-            f"New angular velocity: {rads_to_deg(new_ang_vel)}º/s\n------------------"
+            angular_vel = direction * (self.k1 * relative_distance + self.k2 * delta_angle)
+        self.change_vel(
+            linear=linear_vel, 
+            angular=angular_vel
         )
+        
 
-        k = 2.0
-        self.change_vel(1.0, new_ang_vel * k)
+    # def _old_scan_callback(self, msg: LaserScan) -> None:
+    #     closest_point = get_average_point(msg)
+    #     print(f"Closest point ({closest_point})")
+
+    #     lateral_point = get_closest_lateral_point(
+    #         msg, closest_point
+    #     )  # Probably useless?
+    #     print(f"Closest lateral point ({lateral_point})")
+
+    #     closest_lateral_sign = 1 if closest_point.angle > 0 else -1
+        
+    #     if abs(closest_point.angle - math.pi / 2) < 0.1:
+    #         closest_point.angle += 0.1
+
+    #     alpha = (
+    #         abs(closest_point.angle) - math.pi / 2
+    #     )  # This does not need ABS. Don't know why????
+
+    #     target_distance = 0.40
+    #     relative_distance = closest_point.distance - target_distance
+    #     path_sign = np.sign(
+    #         relative_distance
+    #     )  # inside/outside target distance boundary
+    #     steering_sign = closest_lateral_sign * path_sign
+
+    #     new_ang_vel = steering_sign * alpha  # + relative_distance/10
+
+    #     # Print variables
+    #     print(f"Alpha: {rads_to_deg(alpha)}º")
+    #     print(f"Path sign: {path_sign}")
+    #     print(f"Steering sign: {steering_sign}")
+    #     print(
+    #         f"New angular velocity: {rads_to_deg(new_ang_vel)}º/s\n------------------"
+    #     )
+
+    #     k = 2.0
+    #     self.change_vel(1.0, new_ang_vel * k)
 
 
 def main(args=None):
