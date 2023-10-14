@@ -66,7 +66,7 @@ class RobotMovement(Node):
         self.vel = Twist()
         self.target_distance = target_distance
 
-        self.pub = self.create_publisher(Twist, f"/{robot_name}/cmd_vel", 1) 
+        self.pub = self.create_publisher(Twist, f"/{robot_name}/cmd_vel", 1)
  
 
     def change_vel(self, linear: float, angular: float) -> None:
@@ -85,20 +85,36 @@ class RobotMovement(Node):
         
     def _stop_condition(self, msg: LaserScan, closest_point: LaserPoint) -> bool:
         ranges = np.array(msg.ranges)
-        print(f"Ranges: {ranges}")
+        max_linear = 1.0
+        # print(f"Ranges: {ranges}")
+        
         # stopping conditions 
-        # at leat half of the values are inf
+        # at least half of the values are inf
         if np.sum(np.isinf(ranges)) < len(ranges)/2:
-           return False
+           return max_linear
 
-        wall_values = np.where(ranges < 999999)[0]
-        print(f"Wall values: {wall_values}")
+        wall_values = np.where(ranges < 5)[0]
+        # print(f"Wall values: {wall_values}")
         if len(wall_values) < 2:
-            return False
+            return max_linear
         
        
         point_1_index = wall_values[0]
         point_2_index = wall_values[-1]
+
+        # points = []
+        # for point_index in wall_values:
+        #     angle = msg.angle_min + point_index * msg.angle_increment
+        #     points.append((math.cos(angle)*ranges[point_index], math.sin(angle)*ranges[point_index]))
+        
+        # reference_sin = points[0][1]
+        # for point in points:
+        #     if abs(point[1] - reference_sin) > 0.3:
+        #         print("------\n\n\n\nNot colinear")
+        #         # print point coordinates
+        #         print(f"Point 1: {points[0]}")
+        #         print(f"Point 2: {point}")
+        #         return max_linear
         
         create_point = lambda idx: LaserPoint(
                 index=idx,
@@ -110,19 +126,29 @@ class RobotMovement(Node):
 
         # if they are not in the same side of the closest point
         if np.sign(point_1.angle) != np.sign(point_2.angle) or np.sign(point_1.angle) != np.sign(closest_point.angle):
-            return False
+            return max_linear
 
         # get the angle between closest point and the other two
         angle_1 = abs(point_1.angle - closest_point.angle)
         angle_2 = abs(point_2.angle - closest_point.angle)
 
         wall_size = math.sin(angle_1) * point_1.distance + math.sin(angle_2) * point_2.distance
-        
+
         self.get_logger().info(f"Angle 1: {rads_to_deg(angle_1)}")
         self.get_logger().info(f"Angle 2: {rads_to_deg(angle_2)}")
         self.get_logger().info(f"Wall size: {wall_size}")
 
-        return abs(wall_size - 4) < 0.5
+        # return abs(wall_size - 4.0) < 1.0
+        
+        if (abs(wall_size - 4.0) < 1.0):
+            diff_angle = abs(angle_1 - angle_2)
+            return diff_angle * (max_linear/0.3) if diff_angle > 0.2 else 0.0 #0.22689
+        return max_linear
+        if (abs(wall_size - 4.0) < 1.0):
+            if (angle_1 - angle_2) < 0.1:
+                return 2
+            return 1
+        return False
 
     def _compute_angular_velocity(self, msg: LaserScan, closest_point: LaserPoint) -> float:
         alpha = (
@@ -159,15 +185,29 @@ class RobotMovement(Node):
         if abs(closest_point.angle - math.pi / 2) < 0.1:
             closest_point.angle += 0.1
 
-        if self._stop_condition(msg, closest_point):
-            self.get_logger().info("Stopping")
-            linear = 0.0
-            new_ang_vel = 0.0
-        else:
-            k = 2.0
-            linear = 1.0
-            new_ang_vel = self._compute_angular_velocity(msg, closest_point) * k
-
+        
+        # if self._stop_condition(msg, closest_point):
+        #     self.get_logger().info("\n\n\n\nStopping\n\n\n\n")
+        #     linear = 0.0
+        #     new_ang_vel = 0.0
+        # stop_action = self._stop_condition(msg, closest_point)
+        # if stop_action == 1:
+        #     self.get_logger().info("\n\n\n\nStopping\n\n\n\n")
+        #     k = 1.0
+        #     linear = 0.5
+        #     new_ang_vel = self._compute_angular_velocity(msg, closest_point) * k
+        # elif stop_action == 2:
+        #     self.get_logger().info("\n\n\n\nStopping\n\n\n\n")
+        #     linear = 0.0
+        #     new_ang_vel = 0.0
+        # else:
+            # k = 2.0
+            # linear = 1.0
+            # new_ang_vel = self._compute_angular_velocity(msg, closest_point) * k
+        
+        k = 2.0
+        linear = self._stop_condition(msg, closest_point)
+        new_ang_vel = self._compute_angular_velocity(msg, closest_point) * k
 
         self.change_vel(linear, new_ang_vel)
 

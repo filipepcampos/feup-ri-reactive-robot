@@ -549,7 +549,7 @@
           </scan>
           <range>
             <min>0.1</min>
-            <max>8.0</max>
+            <max>5.0</max>
           </range>
         </ray>
         <always_on>true</always_on>
