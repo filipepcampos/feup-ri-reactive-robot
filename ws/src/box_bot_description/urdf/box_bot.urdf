@@ -41,7 +41,7 @@
   <link name="chassis">
     <visual name="visual_chassis">
       <geometry>
-        <cylinder length="0.1" radius="0.05"/>
+        <cylinder length="0.1" radius="0.1"/>
         <!--<mesh filename="package://box_bot_description/meshes/box_bot.dae" scale="0.1 0.1 0.1"/>-->
       </geometry>
       <material name="box_bot_blue"/>
@@ -49,7 +49,7 @@
 
     <collision name="collision_chassis">
       <geometry>
-        <cylinder length="0.1" radius="0.05"/>
+        <cylinder length="0.1" radius="0.1"/>
       </geometry>
     </collision>
 
@@ -102,7 +102,7 @@
 
 
   <joint name="joint_left_wheel" type="continuous">
-    <origin rpy="0 0 0" xyz="0 -0.05 -0.025"/>
+    <origin rpy="0 0 0" xyz="0 -0.1 -0.025"/>
     <child link="left_wheel"/>
     <parent link="chassis"/>
     <axis rpy="0 0 0" xyz="0 1 0"/>
@@ -143,7 +143,7 @@
   </gazebo>
 
   <joint name="joint_right_wheel" type="continuous">  
-    <origin rpy="0 0 0" xyz="0 0.05 -0.025"/>
+    <origin rpy="0 0 0" xyz="0 0.1 -0.025"/>
     <child link="right_wheel"/>
     <parent link="chassis"/>
     <axis rpy="0 0 0" xyz="0 1 0"/>
@@ -178,7 +178,7 @@
   </link>
 
   <joint name="front_yaw_joint" type="continuous">
-    <origin rpy="0 0 0" xyz="0.04 0 -0.05" />
+    <origin rpy="0 0 0" xyz="0.08 0 -0.05" />
     <parent link="chassis" />
     <child link="front_yaw_link" />
     <axis xyz="0 0 1" />
@@ -239,8 +239,8 @@
 
     <inertial>
         <origin rpy="0 1.5707 1.5707" xyz="0 0 0"/>
-        <mass value="0.005"/>
-        <inertia ixx="2.0e-07" ixy="0" ixz="0" iyy="2.0e-07" iyz="0" izz="2.0e-07"/>
+        <mass value="0.001"/>
+        <inertia ixx="4e-08" ixy="0" ixz="0" iyy="4e-08" iyz="0" izz="4e-08"/>
     </inertial>
   </link>
 
@@ -285,7 +285,7 @@
   </link>
 
   <joint name="back_yaw_joint" type="continuous">
-    <origin rpy="0 0 0" xyz="-0.04 0 -0.05" />
+    <origin rpy="0 0 0" xyz="-0.08 0 -0.05" />
     <parent link="chassis" />
     <child link="back_yaw_link" />
     <axis xyz="0 0 1" />
@@ -347,8 +347,8 @@
 
     <inertial>
         <origin rpy="0 1.5707 1.5707" xyz="0 0 0"/>
-        <mass value="0.005"/>
-        <inertia ixx="2.0e-07" ixy="0" ixz="0" iyy="2.0e-07" iyz="0" izz="2.0e-07"/>
+        <mass value="0.001"/>
+        <inertia ixx="4e-08" ixy="0" ixz="0" iyy="4e-08" iyz="0" izz="4e-08"/>
     </inertial>
   </link>
 
@@ -445,7 +445,7 @@
   </link>
 
   <joint name="laser_scan_link_joint" type="prismatic">
-    <origin rpy="0 0 0" xyz="0.0 0.0 0.05"/>
+    <origin rpy="0 0 0" xyz="0.0 0.0 0.09"/>
     <parent link="chassis"/>
     <child link="laser_scan_link"/>
     <axis xyz="0 0 1"/>
