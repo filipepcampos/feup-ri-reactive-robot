@@ -21,18 +21,19 @@ class LaserPoint:
         self.y = distance * math.sin(angle)
 
     def __str__(self) -> str:
-        return f"index: {self.index}, distance: {self.distance}, angle: {self.angle}"
+        return f"Point(idx: {self.index}, distance: {self.distance:.3f}, angle: {self.angle:.3f})"
 
+def create_laser_point(index: float, msg: LaserScan) -> LaserPoint:
+    return LaserPoint(
+        index=index,
+        distance=msg.ranges[index],
+        angle=msg.angle_min + index * msg.angle_increment,
+    )
 
 def get_closest_point(msg: LaserScan) -> LaserPoint:
     ranges = np.array(msg.ranges)
     closest_point_index = np.argmin(ranges)
-    point = LaserPoint(
-        index=closest_point_index,
-        distance=ranges[closest_point_index],
-        angle=msg.angle_min + closest_point_index * msg.angle_increment,
-    )
-    return point
+    return create_laser_point(closest_point_index, msg)
 
 def get_average_point(msg: LaserScan) -> LaserPoint:
     closest_point = get_closest_point(msg)
@@ -68,6 +69,8 @@ class RobotMovement(Node):
                 ('target_distance', 1.0),
                 ('k1', 1.0),
                 ('k2', 1.0),
+                ('finish_distance', 1.7),
+                ('finish_max_error', 0.1),
             ]
         )
 
@@ -76,6 +79,8 @@ class RobotMovement(Node):
         self.target_distance = self.get_parameter("target_distance").get_parameter_value().double_value
         self.k1 = self.get_parameter("k1").get_parameter_value().double_value
         self.k2 = self.get_parameter("k2").get_parameter_value().double_value
+        self.finish_distance = self.get_parameter("finish_distance").get_parameter_value().double_value
+        self.finish_max_error = self.get_parameter("finish_max_error").get_parameter_value().double_value
 
         self.robot_name = robot_name
         self.vel = Twist()
@@ -94,12 +99,59 @@ class RobotMovement(Node):
         )
 
     def _stop(self, msg: LaserScan) -> bool:
-        return False
+        closest_point = get_closest_point(msg)
+        ranges = np.array(msg.ranges)
+
+        if(np.sum(ranges < 999999) > len(ranges)/2):
+            return False
+   
+        valid_ranges = np.where(ranges < 999999)[0] # Remove points that are too far
+        print(valid_ranges)
+
+        for i in range(1, len(valid_ranges)):
+            if valid_ranges[i] != valid_ranges[i-1] + 1:
+                return False
+
+        # Remove points from other side of the robot
+        if closest_point.angle > 0:
+            valid_ranges = valid_ranges[valid_ranges > len(ranges)/2]
+        else:
+            valid_ranges = valid_ranges[valid_ranges < len(ranges)/2]
+
+        if len(valid_ranges) < 2:
+            return False
+        
+        print("AYYYYY")
+        
+        p1 = create_laser_point(valid_ranges[0], msg)
+        p2 = create_laser_point(valid_ranges[-1], msg)
+
+        p1_relative_angle = abs(p1.angle - closest_point.angle)
+        p2_relative_angle = abs(p2.angle - closest_point.angle)
+
+        print(abs(p1.angle-closest_point.angle)*180/math.pi)
+        print(abs(p2.angle-closest_point.angle)*180/math.pi)
+
+        if p1_relative_angle > 75 * math.pi/180 or p2_relative_angle > 75 * math.pi/180: # Too wide
+            print("A")
+            return False
+
+        if abs(abs(p1.angle-closest_point.angle) - (abs(p2.angle-closest_point.angle))) > 0.75: # Should describe a triangle
+            print("B")
+            return False
+        
+        
+        x_distance = abs(p1.x - p2.x)
+        print(f"X-Distance: {x_distance:.4f}, w: {abs(x_distance - self.finish_distance):.4f}")
+
+        return abs(x_distance - self.finish_distance) < self.finish_max_error
+
 
     def _scan_callback(self, msg: LaserScan) -> None:
         if self._stop(msg):
             linear_vel = 0.0
             angular_vel = 0.0
+            self.get_logger().info("\n---------------\nIssued STOP command\n------------------\n")
         else:
             closest_point = get_closest_point(msg)
             relative_distance = closest_point.distance - self.target_distance
@@ -107,13 +159,11 @@ class RobotMovement(Node):
             linear_vel = 1.0
             direction = 1 if closest_point.angle > 0 else -1
             delta_angle = closest_point.angle -  direction * math.pi/2
-            print(f"Closest angle: {closest_point.angle} ({rads_to_deg(closest_point.angle)}º)")
-            print(f"Delta angle: {delta_angle} ({rads_to_deg(delta_angle)}º)")
-            print(f"Relative distance: {relative_distance} ({closest_point.distance} - {self.target_distance})")
+            self.get_logger().info(f"Closest angle: {closest_point.angle:.4f} ({rads_to_deg(closest_point.angle)}º)")
+            self.get_logger().info(f"Delta angle: {delta_angle:.4f} ({rads_to_deg(delta_angle)}º)")
+            self.get_logger().info(f"Relative distance: {relative_distance:.4f} ({closest_point.distance:.4f} - {self.target_distance:.4f})")
             
-            
-
-            angular_vel = self.k1 * relative_distance + self.k2 * delta_angle
+            angular_vel = self.k1 * relative_distance + self.k2 * delta_angle * direction
         self.change_vel(
             linear=linear_vel, 
             angular=angular_vel

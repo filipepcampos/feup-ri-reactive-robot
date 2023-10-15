@@ -3,3 +3,5 @@ robot_controller:
     target_distance: 1.0
     k1: 1.0
     k2: 5.0
+    finish_distance: 3.65
+    finish_max_error: 0.8
