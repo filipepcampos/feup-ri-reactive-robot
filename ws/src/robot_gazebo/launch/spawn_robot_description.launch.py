@@ -13,8 +13,6 @@ def launch_setup(context, *args, **kwargs):
     # 8x2
     x = random.uniform(-1.0, 1.0) if random_pose == "true" else 0.0
     y = random.uniform(-4.0, 4.0) if random_pose == "true" else 0.0
-
-    y = 1.0 if random_pose == "true" else 0.0
     z = 0.2
     position = [x, y, z]
 
