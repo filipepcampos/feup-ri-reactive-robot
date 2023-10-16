@@ -44,7 +44,7 @@ class RobotMovement(Node):
                 ('target_distance', 1.0),
                 ('k1', 1.0),
                 ('k2', 1.0),
-                ('finish_distance', 1.7),
+                ('finish_distance', 3.65),
                 ('finish_max_error', 0.1),
             ]
         )
@@ -72,7 +72,21 @@ class RobotMovement(Node):
         sub = self.create_subscription(
             LaserScan, f"/{self.robot_name}/laser_scan", self._scan_callback, 10
         )
+    
+    def _wander(self, msg: LaserScan) -> bool:
+        return all([math.isinf(x) for x in msg.ranges])
 
+    def _wander_move(self) -> (float, float):
+        rand_num = np.random.rand()
+
+        if rand_num < 0.05:
+            vel = (4.0, 0.0) 
+        elif rand_num < 0.45:
+            vel = (0.4, 1.0)
+        else:
+            vel = (0.4, -1.0)
+
+        return vel
     
     def _stop(self, msg: LaserScan) -> bool:
         closest_point = get_closest_point(msg)
@@ -117,7 +131,10 @@ class RobotMovement(Node):
 
 
     def _scan_callback(self, msg: LaserScan) -> None:
-        if self._stop(msg):
+        if self._wander(msg):
+            linear_vel, angular_vel = self._wander_move()
+            self.get_logger().info("\n---------------\nIssued WANDER command\n------------------\n")
+        elif self._stop(msg):
             linear_vel = 0.0
             angular_vel = 0.0
             self.get_logger().info("\n---------------\nIssued STOP command\n------------------\n")
