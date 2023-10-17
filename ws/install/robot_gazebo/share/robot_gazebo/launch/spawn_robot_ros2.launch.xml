@@ -1,7 +1,10 @@
 <?xml version='1.0' ?>
 <launch>
+    <arg name="random_pose" default="true"/>
     <!-- Publish URDF file in robot_description topic -->
     <include file="$(find-pkg-share box_bot_description)/launch/publish_urdf.launch.py" />
     <!-- Read robot_description and dspawn in gazebo running sim -->
-    <include file="$(find-pkg-share robot_gazebo)/launch/spawn_robot_description.launch.py"/>
+    <include file="$(find-pkg-share robot_gazebo)/launch/spawn_robot_description.launch.py">
+        <arg name="random_pose" value="$(var random_pose)"/>
+    </include>
 </launch>

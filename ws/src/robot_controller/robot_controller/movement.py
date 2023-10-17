@@ -143,13 +143,24 @@ class RobotMovement(Node):
             relative_distance = closest_point.distance - self.target_distance
 
             linear_vel = 1.0
-            direction = 1 if closest_point.angle > 0 else -1
-            delta_angle = closest_point.angle -  direction * math.pi/2
+            #direction =  if closest_point.angle > 0 else -1
+
+            delta_angle = 0.0
+            wall_side = "left" if closest_point.angle > 0 else "right"
+            if wall_side == "left":
+                delta_angle = closest_point.angle - math.pi/2
+            elif wall_side == "right":
+                delta_angle = math.pi/2 - closest_point.angle
+
+            if wall_side == "right":
+                relative_distance *= -1 
+
             self.get_logger().info(f"Closest angle: {closest_point.angle:.4f} ({rads_to_deg(closest_point.angle)}º)")
             self.get_logger().info(f"Delta angle: {delta_angle:.4f} ({rads_to_deg(delta_angle)}º)")
             self.get_logger().info(f"Relative distance: {relative_distance:.4f} ({closest_point.distance:.4f} - {self.target_distance:.4f})")
             
-            angular_vel = self.k1 * relative_distance + self.k2 * delta_angle * direction
+            #angular_vel = self.k1 * relative_distance + self.k2 * delta_angle
+            angular_vel = self.k2 * delta_angle
         self.change_vel(
             linear=linear_vel, 
             angular=angular_vel
