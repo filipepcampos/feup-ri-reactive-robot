@@ -12,16 +12,16 @@ from launch.actions import OpaqueFunction
 def launch_setup(context, *args, **kwargs):
     ####### DATA INPUT ##########
     # This is to access the argument variables. Otherwise we cant access the values
-    box_bot_name = LaunchConfiguration('box_bot_name').perform(context)
+    reactive_robot_name = LaunchConfiguration('reactive_robot_name').perform(context)
     robot_file = LaunchConfiguration('robot_file').perform(context)
-    robot_description_topic_name = "/" + box_bot_name + "_robot_description"
-    robot_state_publisher_name = box_bot_name +  "_robot_state_publisher"
-    joint_state_topic_name = "/" + box_bot_name + "/joint_states"
+    robot_description_topic_name = "/" + reactive_robot_name + "_robot_description"
+    robot_state_publisher_name = reactive_robot_name +  "_robot_state_publisher"
+    joint_state_topic_name = "/" + reactive_robot_name + "/joint_states"
 
 
     ####### DATA INPUT END ##########
 
-    package_description = "box_bot_description"    
+    package_description = "robot_description"    
 
     
     extension = robot_file.split(".")[1]
@@ -34,7 +34,7 @@ def launch_setup(context, *args, **kwargs):
         robot_desc_path = os.path.join(get_package_share_directory(
         package_description), "robot", robot_file)
         # We load the XACRO file with ARGUMENTS
-        robot_desc = xacro.process_file(robot_desc_path, mappings={'box_bot_name' : box_bot_name})
+        robot_desc = xacro.process_file(robot_desc_path, mappings={'reactive_robot_name' : reactive_robot_name})
     else:
         assert False, "Extension of robot file not suppored = "+str(extension)
   
@@ -58,12 +58,12 @@ def launch_setup(context, *args, **kwargs):
 
 def generate_launch_description(): 
 
-    box_bot_name_arg = DeclareLaunchArgument('box_bot_name', default_value='box_bot')
-    robot_file_arg = DeclareLaunchArgument('robot_file', default_value='box_bot.urdf')
+    reactive_robot_name_arg = DeclareLaunchArgument('reactive_robot_name', default_value='reactive_robot')
+    robot_file_arg = DeclareLaunchArgument('robot_file', default_value='reactive_robot.urdf')
     
 
     return LaunchDescription([
-        box_bot_name_arg,
+        reactive_robot_name_arg,
         robot_file_arg,
         OpaqueFunction(function = launch_setup)
         ])

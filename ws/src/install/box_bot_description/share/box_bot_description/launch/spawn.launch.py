@@ -26,9 +26,9 @@ def launch_setup(context, *args, **kwargs):
     # ROBOT STATE PUBLISHER
     ####### DATA INPUT ##########
 
-    xacro_file = 'box_bot_slotcar.xacro'
+    xacro_file = 'reactive_robot_slotcar.xacro'
 
-    package_description = "box_bot_description"
+    package_description = "robot_description"
     robot_desc_path = os.path.join(get_package_share_directory(
         package_description), "robot", xacro_file)
 
@@ -76,7 +76,7 @@ def generate_launch_description():
     y_spawn_arg = DeclareLaunchArgument('y_spawn', default_value='2.0')
     z_spawn_arg = DeclareLaunchArgument('z_spawn', default_value='3.0')
     entity_name_arg = DeclareLaunchArgument(
-        'entity_name', default_value='box_bot_1')
+        'entity_name', default_value='reactive_robot_1')
 
     return LaunchDescription([
         x_spawn_arg,

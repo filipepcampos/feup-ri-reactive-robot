@@ -174,7 +174,7 @@ class RobotMovement(Node):
 def main(args=None):
     rclpy.init(args=args)
 
-    robot_movement = RobotMovement("box_bot")
+    robot_movement = RobotMovement("reactive_robot")
     robot_movement.sub_scan()
 
     rclpy.spin(robot_movement)

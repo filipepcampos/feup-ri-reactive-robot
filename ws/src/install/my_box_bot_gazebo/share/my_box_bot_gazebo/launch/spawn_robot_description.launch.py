@@ -6,7 +6,7 @@ from launch import LaunchDescription
 def generate_launch_description():
     position = [0.0, 0.0, 0.2]
     orientation = [0.0, 0.0, 0.0]
-    robot_base_name = "box_bot"
+    robot_base_name = "reactive_robot"
 
     entity_name = robot_base_name + "_" + str(random.randint(0, 1000000))
 

@@ -27,7 +27,7 @@ class RobotOdometryLogger(Node):
 def main(args=None):
     rclpy.init(args=args)
 
-    robot_logger = RobotOdometryLogger("box_bot")
+    robot_logger = RobotOdometryLogger("reactive_robot")
     robot_logger.sub_odometry()
 
     rclpy.spin(robot_logger)

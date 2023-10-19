@@ -10,12 +10,12 @@ from ament_index_python.packages import get_package_prefix
 
 def generate_launch_description():
     pkg_gazebo_ros = get_package_share_directory("gazebo_ros")
-    pkg_box_bot_gazebo = get_package_share_directory("robot_gazebo")
+    pkg_reactive_robot_gazebo = get_package_share_directory("robot_gazebo")
 
-    description_package_name = "box_bot_description"
+    description_package_name = "robot_description"
     install_dir = get_package_prefix(description_package_name)
 
-    gazebo_models_path = os.path.join(pkg_box_bot_gazebo, "models")
+    gazebo_models_path = os.path.join(pkg_reactive_robot_gazebo, "models")
 
     if "GAZEBO_MODEL_PATH" in os.environ:
         os.environ["GAZEBO_MODEL_PATH"] += ":" + gazebo_models_path
@@ -43,7 +43,7 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "world",
                 default_value=[
-                    os.path.join(pkg_box_bot_gazebo, "worlds", "question_mark.world"),
+                    os.path.join(pkg_reactive_robot_gazebo, "worlds", "question_mark.world"),
                     "",
                 ],
                 description="SDF world file",

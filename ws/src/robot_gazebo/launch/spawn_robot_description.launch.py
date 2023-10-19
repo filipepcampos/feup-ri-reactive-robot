@@ -18,7 +18,7 @@ def launch_setup(context, *args, **kwargs):
 
     orientation = [0.0, 0.0, random.uniform(-3.14, 3.14)] if random_pose == "true" else [0.0, 0.0, 0.0]
 
-    robot_base_name = "box_bot"
+    robot_base_name = "reactive_robot"
 
     entity_name = robot_base_name  # + "_" + str(random.randint(0, 1000000))
 

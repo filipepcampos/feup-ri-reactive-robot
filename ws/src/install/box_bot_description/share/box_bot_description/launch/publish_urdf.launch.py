@@ -7,8 +7,8 @@ from launch_ros.descriptions import ParameterValue
 from launch.substitutions import Command
 
 def generate_launch_description():
-    urdf_file = "box_bot.urdf"
-    package_description = "box_bot_description"
+    urdf_file = "reactive_robot.urdf"
+    package_description = "robot_description"
 
     print("Fetching URDF -->")
     robot_desc_path = os.path.join(get_package_share_directory(package_description), "urdf", urdf_file)
@@ -25,7 +25,7 @@ def generate_launch_description():
 
     print("B")
     
-    rviz_config_dir = os.path.join(get_package_share_directory(package_description), "rviz", "box_bot.rviz")
+    rviz_config_dir = os.path.join(get_package_share_directory(package_description), "rviz", "reactive_robot.rviz")
 
     rviz_node = Node(
         package="rviz2",

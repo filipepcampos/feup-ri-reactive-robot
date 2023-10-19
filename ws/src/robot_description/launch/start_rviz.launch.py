@@ -12,24 +12,21 @@ import random
 
 
 def generate_launch_description():
-
     package_description = "robot_description"
 
     # RVIZ Configuration
-    rviz_config_dir = os.path.join(get_package_share_directory(
-        package_description), 'rviz', 'reactive_robot.rviz')
+    rviz_config_dir = os.path.join(
+        get_package_share_directory(package_description), "rviz", "reactive_robot.rviz"
+    )
 
     rviz_node = Node(
-        package='rviz2',
-        executable='rviz2',
-        output='screen',
-        name='rviz_node',
-        parameters=[{'use_sim_time': True}],
-        arguments=['-d', rviz_config_dir])
+        package="rviz2",
+        executable="rviz2",
+        output="screen",
+        name="rviz_node",
+        parameters=[{"use_sim_time": True}],
+        arguments=["-d", rviz_config_dir],
+    )
 
     # create and return launch description object
-    return LaunchDescription(
-        [
-            rviz_node
-        ]
-    )
+    return LaunchDescription([rviz_node])

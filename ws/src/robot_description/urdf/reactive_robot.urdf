@@ -41,14 +41,15 @@
   <link name="chassis">
     <visual name="visual_chassis">
       <geometry>
-        <mesh filename="package://robot_description/meshes/cute_cube.dae" scale="0.1 0.1 0.1"/>
+        <cylinder length="0.1" radius="0.1"/>
+        <!--<mesh filename="package://robot_description/meshes/reactive_robot.dae" scale="0.1 0.1 0.1"/>-->
       </geometry>
       <material name="reactive_robot_blue"/>
     </visual>
 
     <collision name="collision_chassis">
       <geometry>
-        <box size="0.1 0.1 0.1"/>
+        <cylinder length="0.1" radius="0.1"/>
       </geometry>
     </collision>
 
@@ -101,7 +102,7 @@
 
 
   <joint name="joint_left_wheel" type="continuous">
-    <origin rpy="0 0 0" xyz="0 -0.05 -0.025"/>
+    <origin rpy="0 0 0" xyz="0 -0.1 -0.025"/>
     <child link="left_wheel"/>
     <parent link="chassis"/>
     <axis rpy="0 0 0" xyz="0 1 0"/>
@@ -116,7 +117,7 @@
         <geometry>
           <cylinder length="0.001" radius="0.035"/>
         </geometry>
-        <material name="green"/>
+        <material name="green_light"/>
       </visual>
 
       <collision name="right_wheel_collision">
@@ -142,7 +143,7 @@
   </gazebo>
 
   <joint name="joint_right_wheel" type="continuous">  
-    <origin rpy="0 0 0" xyz="0 0.05 -0.025"/>
+    <origin rpy="0 0 0" xyz="0 0.1 -0.025"/>
     <child link="right_wheel"/>
     <parent link="chassis"/>
     <axis rpy="0 0 0" xyz="0 1 0"/>
@@ -177,7 +178,7 @@
   </link>
 
   <joint name="front_yaw_joint" type="continuous">
-    <origin rpy="0 0 0" xyz="0.04 0 -0.05" />
+    <origin rpy="0 0 0" xyz="0.08 0 -0.05" />
     <parent link="chassis" />
     <child link="front_yaw_link" />
     <axis xyz="0 0 1" />
@@ -284,7 +285,7 @@
   </link>
 
   <joint name="back_yaw_joint" type="continuous">
-    <origin rpy="0 0 0" xyz="-0.04 0 -0.05" />
+    <origin rpy="0 0 0" xyz="-0.08 0 -0.05" />
     <parent link="chassis" />
     <child link="back_yaw_link" />
     <axis xyz="0 0 1" />
@@ -444,7 +445,7 @@
   </link>
 
   <joint name="laser_scan_link_joint" type="prismatic">
-    <origin rpy="0 0 0" xyz="0.0 0.0 0.05"/>
+    <origin rpy="0 0 0" xyz="0.0 0.0 0.09"/>
     <parent link="chassis"/>
     <child link="laser_scan_link"/>
     <axis xyz="0 0 1"/>
@@ -540,7 +541,7 @@
         <ray>
           <scan>
             <horizontal>
-              <samples>200</samples>
+              <samples>360</samples>
               <resolution>1.0</resolution>
               <min_angle>-3.14</min_angle>
               <max_angle>3.14</max_angle>
@@ -548,7 +549,7 @@
           </scan>
           <range>
             <min>0.1</min>
-            <max>5.0</max>
+            <max>8.0</max>
           </range>
         </ray>
         <always_on>true</always_on>
@@ -562,131 +563,5 @@
           <output_type>sensor_msgs/LaserScan</output_type>
         </plugin>
       </sensor>
-	</gazebo>
-
-
-  <!-- Point Cloud -->
-
-  <link name='pointcloud_link'>
-	</link>
-
-  <joint name="pointcloud_link_joint" type="fixed">
-		<origin rpy="0 0 0" xyz="0.051 0.0 0"/>
-		<parent link="chassis"/>
-		<child link="pointcloud_link"/>
-	</joint>
-
-
-    <gazebo reference="pointcloud_link">
-        <sensor type="ray" name="pointcloud_sensor">
-            <ray>
-            <scan>
-                <horizontal>
-                    <samples>50</samples>
-                    <resolution>1.0</resolution>
-                    <min_angle>-1.0</min_angle>
-                    <max_angle>1.0</max_angle>
-                </horizontal>
-                <vertical>
-                    <samples>50</samples>
-                    <resolution>1.0</resolution>
-                    <min_angle>-1.0</min_angle>
-                    <max_angle>1.0</max_angle>
-                </vertical>
-            </scan>
-            <range>
-                <min>0.10</min>
-                <max>5.0</max>
-                <resolution>0.01</resolution>
-            </range>
-            <!-- Using gazebo's noise instead of plugin's -->
-            <noise>
-                <type>gaussian</type>
-                <mean>0.0</mean>
-                <stddev>0.01</stddev>
-            </noise>
-            </ray>
-            <!-- Using gazebo's update rate instead of plugin's -->
-            <update_rate>30</update_rate>
-            <plugin name="gazebo_ros_block_laser_controller" filename="libgazebo_ros_ray_sensor.so">
-            <!-- Change namespace and output topic so published topic is /rrbot/laser/pointcloud -->
-            <ros>
-                <namespace>/reactive_robot/pointcloud</namespace>
-                <argument>~/out:=pointcloud</argument>
-            </ros>
-            <!-- Set output to sensor_msgs/PointCloud to get same output type as gazebo_ros_block_laser -->
-            <output_type>sensor_msgs/PointCloud</output_type>
-            <frameName>pointcloud_link</frameName>
-
-            <!-- min_intensity instead of hokuyoMinIntensity -->
-            <min_intensity>100.0</min_intensity>
-            </plugin>
-        </sensor>
-    </gazebo>
-
-
-  <!-- RGB CAMERA -->
-  <link name="rgb_camera_link_frame">
-  </link>
-
-    <joint name="rgb_camera_link_frame_joint" type="fixed">
-        <origin rpy="0 0 0" xyz="0.051 0.0 0.05"/>
-        <parent link="chassis" />
-        <child link="rgb_camera_link_frame" />
-        <axis xyz="0 0 0"/>
-    </joint>
-
-    <gazebo reference="rgb_camera_link_frame">
-        <sensor name="camera" type="wideanglecamera">
-          <camera>
-            <horizontal_fov>6.283</horizontal_fov>
-            <image>
-              <width>320</width>
-              <height>240</height>
-            </image>
-            <clip>
-              <near>0.1</near>
-              <far>100</far>
-            </clip>
-            <!-- A new section named `lens`. -->
-            <lens>
-              <!-- type element is mandatory -->
-              <type>custom</type>
-              <!-- manually defined mapping function r = c1*f*fun(theta/c2 + c3) -->
-              <!-- More information here: https://en.wikipedia.org/wiki/Fisheye_lens#Mapping_function -->
-              <custom_function>
-                <c1>1.05</c1>
-                <!-- linear scaling -->
-                <c2>4</c2>
-                <!-- angle scaling -->
-                <f>1.0</f>
-                <!-- one more scaling parameter -->
-                <fun>tan</fun>
-                <!-- one of sin,tan,id -->
-              </custom_function>
-              <!-- if it is set to `true` your horizontal FOV will ramain as defined -->
-              <!-- othervise it depends on lens type and custom function, if there is one -->
-              <scale_to_hfov>true</scale_to_hfov>
-              <!-- clip everything that is outside of this angle -->
-              <cutoff_angle>3.1415</cutoff_angle>
-              <!-- resolution of the cubemap texture, the highter it is - the sharper is your image -->
-              <env_texture_size>512</env_texture_size>
-            </lens>
-            <always_on>1</always_on>
-            <update_rate>30</update_rate>
-          </camera>
-          <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
-            <ros>
-              <namespace>/reactive_robot</namespace>
-            </ros>
-            <cameraName>rgb_camera</cameraName>
-            <imageTopicName>image_raw</imageTopicName>
-            <cameraInfoTopicName>camera_info</cameraInfoTopicName>
-            <frameName>rgb_camera_link_frame</frameName>
-            <hackBaseline>0.07</hackBaseline>
-          </plugin>
-        </sensor>
-    </gazebo>
-
-  
+	</gazebo>  
 </robot>
