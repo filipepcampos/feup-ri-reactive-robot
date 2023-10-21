@@ -46,6 +46,8 @@ class RobotMovement(Node):
                 ('k2', 1.0),
                 ('finish_distance', 3.65),
                 ('finish_max_error', 0.1),
+                ('max_linear_velocity', 5.0),
+                ('max_angular_velocity', 5.0),
             ]
         )
 
@@ -56,6 +58,8 @@ class RobotMovement(Node):
         self.k2 = self.get_parameter("k2").get_parameter_value().double_value
         self.finish_distance = self.get_parameter("finish_distance").get_parameter_value().double_value
         self.finish_max_error = self.get_parameter("finish_max_error").get_parameter_value().double_value
+        self.max_linear_velocity = self.get_parameter("max_linear_velocity").get_parameter_value().double_value
+        self.max_angular_velocity = self.get_parameter("max_angular_velocity").get_parameter_value().double_value
 
         self.robot_name = robot_name
         self.vel = Twist()
@@ -68,7 +72,7 @@ class RobotMovement(Node):
         self.pub.publish(self.vel)
 
     def sub_scan(self) -> None:
-        print(f"Subscribing to /{self.robot_name}/laser_scan")
+        self.get_logger().info((f"Subscribing to /{self.robot_name}/laser_scan")
         sub = self.create_subscription(
             LaserScan, f"/{self.robot_name}/laser_scan", self._scan_callback, 10
         )
@@ -79,10 +83,8 @@ class RobotMovement(Node):
     def _wander_move(self) -> (float, float):
         rand_num = np.random.rand()
 
-        if rand_num < 0.05:
+        if rand_num < 0.5:
             vel = (4.0, 0.0) 
-        elif rand_num < 0.45:
-            vel = (0.4, 1.0)
         else:
             vel = (0.4, -1.0)
 
@@ -116,7 +118,7 @@ class RobotMovement(Node):
         
         
         x_distance = abs(p1.x - p2.x)
-        print(f"X-Distance: {x_distance:.4f}, w: {abs(x_distance - self.finish_distance):.4f}")
+        self.get_logger().info((f"X-Distance: {x_distance:.4f}, w: {abs(x_distance - self.finish_distance):.4f}")
 
         points = [create_laser_point(i, msg) for i in valid_ranges]
         x, y = [p.x for p in points], [p.y for p in points]
@@ -148,10 +150,10 @@ class RobotMovement(Node):
             delta_angle = 0.0
             wall_side = "left" if closest_point.angle > 0 else "right"
             if wall_side == "left":
-                print("WALL_LEFT")
+                # print("WALL_LEFT")
                 delta_angle = abs(closest_point.angle) - math.pi/2
             elif wall_side == "right":
-                print("WALL_RIGHT")
+                # print("WALL_RIGHT")
                 delta_angle = math.pi/2 - abs(closest_point.angle)
 
             if wall_side == "right":
@@ -162,10 +164,20 @@ class RobotMovement(Node):
             self.get_logger().info(f"Relative distance: {relative_distance:.4f} ({closest_point.distance:.4f} - {self.target_distance:.4f})")
             
             angular_vel = self.k1 * relative_distance + self.k2 * delta_angle
-            #angular_vel = self.k2 * delta_angle
+            self.get_logger().info(f"Angular vel: {angular_vel:.4f}")
+
+
+            # angular_vel ~ 0.0 then linear_vel ~ max
+            # angular_vel ~ max then linear_vel ~ 0.0 
+            linear_vel *= max(
+                min(1/abs(angular_vel + 0.0001), 1.0),  # 0.0001 to avoid division by 0
+                0.2
+            )
+
+
         self.change_vel(
-            linear=linear_vel, 
-            angular=angular_vel
+            linear=min(linear_vel, self.max_linear_velocity),  
+            angular=min(angular_vel, self.max_angular_velocity)
         )
         
 
