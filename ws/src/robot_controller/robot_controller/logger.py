@@ -5,6 +5,8 @@ from rclpy.node import Node
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 
+def rads_to_deg(rads: float) -> float:
+    return rads * 180 / math.pi
 
 class RobotOdometryLogger(Node):
     def __init__(self, robot_name: str) -> None:

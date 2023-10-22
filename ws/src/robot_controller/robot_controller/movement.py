@@ -7,6 +7,10 @@ from sensor_msgs.msg import LaserScan
 import numpy as np
 
 
+DEBUG_PRINTS = False
+TEST_PRINTS = True
+
+
 def rads_to_deg(rads: float) -> float:
     return rads * 180 / math.pi
 
@@ -51,7 +55,7 @@ class RobotMovement(Node):
             ]
         )
 
-        self.get_logger().info("Creacted node")
+        self.logger_debug("Creacted node")
 
         self.target_distance = self.get_parameter("target_distance").get_parameter_value().double_value
         self.k1 = self.get_parameter("k1").get_parameter_value().double_value
@@ -61,10 +65,26 @@ class RobotMovement(Node):
         self.max_linear_velocity = self.get_parameter("max_linear_velocity").get_parameter_value().double_value
         self.max_angular_velocity = self.get_parameter("max_angular_velocity").get_parameter_value().double_value
 
+        self.logger_test(f"k1: {self.k1}")
+        self.logger_test(f"k2: {self.k2}")
+        self.logger_test(f"Max_linear: {self.max_linear_velocity}")
+        self.logger_test(f"Max_angular: {self.max_angular_velocity}")
+        self.logger_test(f"Target_distance: {self.target_distance}")
+
         self.robot_name = robot_name
         self.vel = Twist()
 
         self.pub = self.create_publisher(Twist, f"/{robot_name}/cmd_vel", 1)
+
+
+    def logger_debug(self, msg : str) -> None: 
+        if DEBUG_PRINTS:
+            self.get_logger().info(msg)
+
+    def logger_test(self, msg : str) -> None:
+        if TEST_PRINTS:
+            self.get_logger().info(msg)
+
 
     def change_vel(self, linear: float, angular: float) -> None:
         self.vel.linear.x = linear
@@ -72,7 +92,7 @@ class RobotMovement(Node):
         self.pub.publish(self.vel)
 
     def sub_scan(self) -> None:
-        self.get_logger().info((f"Subscribing to /{self.robot_name}/laser_scan")
+        self.logger_debug(f"Subscribing to /{self.robot_name}/laser_scan")
         sub = self.create_subscription(
             LaserScan, f"/{self.robot_name}/laser_scan", self._scan_callback, 10
         )
@@ -118,7 +138,7 @@ class RobotMovement(Node):
         
         
         x_distance = abs(p1.x - p2.x)
-        self.get_logger().info((f"X-Distance: {x_distance:.4f}, w: {abs(x_distance - self.finish_distance):.4f}")
+        self.logger_debug(f"X-Distance: {x_distance:.4f}, w: {abs(x_distance - self.finish_distance):.4f}")
 
         points = [create_laser_point(i, msg) for i in valid_ranges]
         x, y = [p.x for p in points], [p.y for p in points]
@@ -135,11 +155,11 @@ class RobotMovement(Node):
     def _scan_callback(self, msg: LaserScan) -> None:
         if self._wander(msg):
             linear_vel, angular_vel = self._wander_move()
-            self.get_logger().info("\n---------------\nIssued WANDER command\n------------------\n")
+            self.logger_debug("\n---------------\nIssued WANDER command\n------------------\n")
         elif self._stop(msg):
             linear_vel = 0.0
             angular_vel = 0.0
-            self.get_logger().info("\n---------------\nIssued STOP command\n------------------\n")
+            self.logger_debug("\n---------------\nIssued STOP command\n------------------\n")
         else:
             closest_point = get_closest_point(msg)
             relative_distance = closest_point.distance - self.target_distance
@@ -159,21 +179,27 @@ class RobotMovement(Node):
             if wall_side == "right":
                 relative_distance *= -1 
 
-            self.get_logger().info(f"Closest angle: {closest_point.angle:.4f} ({rads_to_deg(closest_point.angle)}º)")
-            self.get_logger().info(f"Delta angle: {delta_angle:.4f} ({rads_to_deg(delta_angle)}º)")
-            self.get_logger().info(f"Relative distance: {relative_distance:.4f} ({closest_point.distance:.4f} - {self.target_distance:.4f})")
+            self.logger_debug(f"Closest angle: {closest_point.angle:.4f} ({rads_to_deg(closest_point.angle)}º)")
+            self.logger_debug(f"Delta angle: {delta_angle:.4f} ({rads_to_deg(delta_angle)}º)")
+            self.logger_debug(f"Relative distance: {relative_distance:.4f} ({closest_point.distance:.4f} - {self.target_distance:.4f})")
             
+
+
             angular_vel = self.k1 * relative_distance + self.k2 * delta_angle
-            self.get_logger().info(f"Angular vel: {angular_vel:.4f}")
+            
+            self.logger_debug(f"Angular vel: {angular_vel:.4f}")
 
 
             # angular_vel ~ 0.0 then linear_vel ~ max
             # angular_vel ~ max then linear_vel ~ 0.0 
-            linear_vel *= max(
+            linear_vel *= max( 
                 min(1/abs(angular_vel + 0.0001), 1.0),  # 0.0001 to avoid division by 0
                 0.2
             )
 
+            # Direction;Wall_distance;angular_vel;linear_vel
+            self.logger_test(f"{wall_side};{closest_point.distance:.4f};{relative_distance:.4f};{angular_vel:.4f};{linear_vel:.4f}")
+            # can we log it to a file or a node? n
 
         self.change_vel(
             linear=min(linear_vel, self.max_linear_velocity),  
