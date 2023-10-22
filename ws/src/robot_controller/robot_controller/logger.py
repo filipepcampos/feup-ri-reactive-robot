@@ -13,6 +13,9 @@ class RobotOdometryLogger(Node):
         super().__init__("asdf")
         self.get_logger().info("Creacted node")
 
+        # clean file content
+        open(f"{robot_name}_odometry.csv", "w").close()
+
         self.robot_name = robot_name
         self.vel = Twist()
 

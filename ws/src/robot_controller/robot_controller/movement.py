@@ -145,7 +145,7 @@ class RobotMovement(Node):
         line_fit_error = np.sum((np.polyval(np.polyfit(x, y, 1), x) - y)**2)
 
         # Condition 3: The points should be approximately in a line (to account for possible errors)
-        if line_fit_error > 0.1:
+        if line_fit_error > 0.05:
             return False
         
         # Condition 4: The end wall distance should be approximately the same as self.finish_distance
@@ -203,7 +203,7 @@ class RobotMovement(Node):
 
         self.change_vel(
             linear=min(linear_vel, self.max_linear_velocity),  
-            angular=min(angular_vel, self.max_angular_velocity)
+            angular=np.sign(angular_vel) * min(abs(angular_vel), self.max_angular_velocity)
         )
         
 
