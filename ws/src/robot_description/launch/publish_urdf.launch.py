@@ -53,23 +53,9 @@ def generate_launch_description():
         output="screen",
     )
 
-    rviz_config_dir = os.path.join(
-        get_package_share_directory(package_description), "rviz", "reactive_robot.rviz"
-    )
-
-    rviz_node = Node(
-        package="rviz2",
-        executable="rviz2",
-        name="rviz_node",
-        parameters=[{"use_sim_time": True}],
-        arguments=["-d", rviz_config_dir],
-        output="screen",
-    )
-
     return LaunchDescription(
         [
             robot_state_publisher_node,
-            rviz_node,
             joint_state_publisher_node,
         ]
     )

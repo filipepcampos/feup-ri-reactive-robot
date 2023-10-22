@@ -28,11 +28,8 @@ endif()
 
 install(
   DIRECTORY
-    robot
     meshes
-	rviz
     urdf
-    config
     launch
   DESTINATION
     share/${PROJECT_NAME}/
