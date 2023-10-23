@@ -56,7 +56,7 @@ docker exec -it ros-it bash
 ```
 
 ### Setup without Docker
-If you wish to run this project we are using **ROS2 Iron** and **Gazebo Classic**. For more dependencies, please emulate what is installed in the [Dockerfile](https://github.com/filipepcampos/feup-ri-reactive-robot/blob/55585e06fe7109fc3b3b1936e3a66848090f58f4/Dockerfile#L7C1-L7C1).
+If you wish to run this project we are using **ROS2 Iron** and **Gazebo Classic**. For more dependencies, please emulate what is installed in the [Dockerfile](https://github.com/filipepcampos/feup-ri-reactive-robot/blob/c1b17c30142b527e5d85cbc939fb55c7664afd6b/Dockerfile#L7).
 
 ### Running the Simulation
 
