@@ -131,8 +131,6 @@ class RobotMovement(Node):
         
         
         x_distance = abs(p1.x - p2.x)
-        self.logger_debug(f"X-Distance: {x_distance:.4f}, w: {abs(x_distance - self.finish_distance):.4f}")
-
         points = [create_laser_point(i, msg) for i in valid_ranges]
         x, y = [p.x for p in points], [p.y for p in points]
         line_fit_error = np.sum((np.polyval(np.polyfit(x, y, 1), x) - y)**2)
@@ -151,25 +149,21 @@ class RobotMovement(Node):
     def _scan_callback(self, msg: LaserScan) -> None:
         if self._wander(msg):
             linear_vel, angular_vel = self._wander_move()
-            self.logger_debug("\n---------------\nIssued WANDER command\n------------------\n")
+            self.logger_debug("Action: Wander")
         elif self._stop(msg):
-            linear_vel = 0.0
-            angular_vel = 0.0
-            self.logger_debug("\n---------------\nIssued STOP command\n------------------\n")
+            linear_vel, angular_vel = 0.0, 0.0
+            self.logger_debug("Action: STOP")
         else:
             closest_point = get_closest_point(msg)
             relative_distance = closest_point.distance - self.target_distance
 
             linear_vel = 1.0
-            #direction =  if closest_point.angle > 0 else -1
 
             delta_angle = 0.0
             wall_side = "left" if closest_point.angle > 0 else "right"
             if wall_side == "left":
-                # print("WALL_LEFT")
                 delta_angle = abs(closest_point.angle) - math.pi/2
             elif wall_side == "right":
-                # print("WALL_RIGHT")
                 delta_angle = math.pi/2 - abs(closest_point.angle)
 
             if wall_side == "right":
@@ -179,8 +173,6 @@ class RobotMovement(Node):
             self.logger_debug(f"Delta angle: {delta_angle:.4f} ({rads_to_deg(delta_angle)}º)")
             self.logger_debug(f"Relative distance: {relative_distance:.4f} ({closest_point.distance:.4f} - {self.target_distance:.4f})")
             
-
-
             angular_vel = self.k1 * relative_distance + self.k2 * delta_angle
             
             self.logger_debug(f"Angular vel: {angular_vel:.4f}")
@@ -193,9 +185,7 @@ class RobotMovement(Node):
                 0.2
             )
 
-            # Direction;Wall_distance;angular_vel;linear_vel
             self.logger_test(f"{wall_side};{closest_point.distance:.4f};{relative_distance:.4f};{angular_vel:.4f};{linear_vel:.4f}")
-            # can we log it to a file or a node? n
 
         self.change_vel(
             linear=min(linear_vel, self.max_linear_velocity),  

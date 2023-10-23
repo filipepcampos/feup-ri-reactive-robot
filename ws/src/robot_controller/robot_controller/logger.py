@@ -17,7 +17,6 @@ class RobotOdometryLogger(Node):
         open(f"{robot_name}_odometry.csv", "w").close()
 
         self.robot_name = robot_name
-        self.vel = Twist()
 
     def sub_odometry(self) -> None:
         sub = self.create_subscription(
