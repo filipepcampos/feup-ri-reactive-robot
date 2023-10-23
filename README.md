@@ -3,9 +3,36 @@
 ## Description
 This is a reactive wall-following robot that uses a laser scanner to detect obstacles and a differential drive to move around. The robot is simulated in Gazebo and the control is done using ROS2.
 
+## Directory Structure
+
+```
+├── analysis # Python data analysis
+├── ...
+├── Dockerfile # Dockerfile for ROS2 + Gazebo Classic
+└── ws # ROS2 Workspace
+    ├── results # Results from experiments, includes raw log and odometry files for data analysis
+    └── src
+      ├── ...
+      ├── robot_controller
+      │ └── robot_controller
+      │   ├── movement.py # Controls the wall-following behaviour
+      │   └── logger.py # Node that listens to odometry topic and logs it to a csv file
+      ├── robot_description
+      │ ├── launch
+      │ │ └── publish_urdf.launch.py # Used by the robot_gazebo package.
+      │ └── urdf
+      │   └── reactive_robot.urdf # Our robot
+      └── robot_gazebo
+        ├── launch
+          ├── spawn_robot_ros2.launch.xml # Spawn the robot, specified in robot_description
+          └── start_world.launch.py # Start the world
+        └── worlds
+          └── question_mark.world
+```
+
 ## Instructions
 
-## Docker setup
+### Docker setup
 
 Install [Docker](https://www.docker.com/) for your preferred operating system.
 
@@ -24,10 +51,10 @@ To start a terminal inside the container type:
 docker exec -it ros2-it bash
 ```
 
-## Setup without Docker
-If you wish to run this project we are using ROS2 Iron and Gazebo Classic. For more dependencies, please emulate what is installed in the [Dockerfile](https://github.com/filipepcampos/feup-ri-reactive-robot/blob/55585e06fe7109fc3b3b1936e3a66848090f58f4/Dockerfile#L7C1-L7C1).
+### Setup without Docker
+If you wish to run this project we are using **ROS2 Iron** and **Gazebo Classic**. For more dependencies, please emulate what is installed in the [Dockerfile](https://github.com/filipepcampos/feup-ri-reactive-robot/blob/55585e06fe7109fc3b3b1936e3a66848090f58f4/Dockerfile#L7C1-L7C1).
 
-## Running the Simulation
+### Running the Simulation
 
 For this setup, you will require 3 terminals running inside the container (or a single multiplexed terminal using `tmux`, pre-installed in the image).
 The following instructions assume that these commands have been run already:
