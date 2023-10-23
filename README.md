@@ -24,24 +24,28 @@ This is a reactive wall-following robot that uses a laser scanner to detect obst
       │   └── reactive_robot.urdf # Our robot
       └── robot_gazebo
         ├── launch
-          ├── spawn_robot_ros2.launch.xml # Spawn the robot, specified in robot_description
-          └── start_world.launch.py # Start the world
+        │ ├── spawn_robot_ros2.launch.xml # Spawn the robot, specified in robot_description
+        │ └── start_world.launch.py # Start the world
         └── worlds
           └── question_mark.world
 ```
 
 ## Instructions
 
-### Docker setup
+### Docker setup (Recommended)
 
-Install [Docker](https://www.docker.com/) for your preferred operating system.
+1. Clone this repository
 
-To start a Docker container simply run the following command in the root of the repository:
+2. Install [Docker](https://www.docker.com/) for your preferred operating system.
+
+
+3. To start a Docker container simply run the following command in the root of the repository:
 ```bash
 docker compose up -d --build
 ```
+The container is now running in the background
 
-To grant the container access to the X server, the following command is required. Without it, the Gazebo simulation environment will crash. This step needs to be done only once for a new desktop session.
+4. To grant the container access to the X server, the following command is required. Without it, the Gazebo simulation environment will crash. This step needs to be done only once for a new desktop session.
 ```bash
 xhost +local:root
 ```
