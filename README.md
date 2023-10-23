@@ -75,7 +75,7 @@ ros2 launch robot_gazebo start_world.launch.py
 
 **Spawn the URDF robot**:
 ```bash
-ros2 launch robot_gazebo spawn_robot_ros2.launch.xml
+ros2 launch robot_gazebo spawn_robot_ros2.launch.xml [random_pose:='true' | 'false']
 ```
 
 **Control the robot**:
