@@ -15,7 +15,7 @@ pos = {
 
 def launch_setup(context, *args, **kwargs):
     random_pose = LaunchConfiguration("random_pose", default="true").perform(context)
-    pos_number = LaunchConfiguration("pos_number", default="true").perform(context)
+    #pos_number = LaunchConfiguration("pos_number", default="true").perform(context)
 
 
 
@@ -69,11 +69,11 @@ def generate_launch_description():
             "random_pose", default_value="true",
             description="Randomize robot pose")
     
-    pos_number = DeclareLaunchArgument(
-            "pos_number", default_value="1",
-            description="Randomize robot pose")
+    #pos_number = DeclareLaunchArgument(
+    #        "pos_number", default_value="1",
+    #        description="Randomize robot pose")
 
     return LaunchDescription([
         random_pose_arg,
-        pos_number, 
+        #pos_number, 
         OpaqueFunction(function=launch_setup)])
