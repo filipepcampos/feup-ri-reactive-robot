@@ -6,6 +6,5 @@
     <!-- Read robot_description and dspawn in gazebo running sim -->
     <include file="$(find-pkg-share robot_gazebo)/launch/spawn_robot_description.launch.py">
         <arg name="random_pose" value="$(var random_pose)"/>
-        <arg name="pos_number" value="$(var pos_number)"/>
     </include>
 </launch>
