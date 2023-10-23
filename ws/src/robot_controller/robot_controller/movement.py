@@ -101,14 +101,7 @@ class RobotMovement(Node):
         return all([math.isinf(x) for x in msg.ranges])
 
     def _wander_move(self) -> (float, float):
-        rand_num = np.random.rand()
-
-        if rand_num < 0.5:
-            vel = (4.0, 0.0) 
-        else:
-            vel = (0.4, -1.0)
-
-        return vel
+        return (1.5, np.random.normal(0.3, 0.1))
     
     def _stop(self, msg: LaserScan) -> bool:
         closest_point = get_closest_point(msg)
@@ -146,6 +139,9 @@ class RobotMovement(Node):
 
         # Condition 3: The points should be approximately in a line (to account for possible errors)
         if line_fit_error > 0.05:
+            return False
+        
+        if closest_point.distance > 2*self.target_distance:
             return False
         
         # Condition 4: The end wall distance should be approximately the same as self.finish_distance
