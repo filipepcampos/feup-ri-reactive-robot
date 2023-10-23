@@ -54,11 +54,11 @@ ros2 run robot_controller movement --ros-args --params-file src/robot_controller
 ```
 These two commands are useful for testing purposes. The first allows the user to manually control the robot and the second resets the world to its starting position.
 
-# Acknowledgments
-
-The robot description was adapted from the following [repository](https://bitbucket.org/theconstructcore/box_bot/src/master/box_bot_description/)
-
 ```bash
 ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args --remap /cmd_vel:=/reactive_robot/cmd_vel
 ros2 service call /reset_world std_srvs/srv/Empty
 ```
+
+# Acknowledgments
+
+The robot description was adapted from the following [repository](https://bitbucket.org/theconstructcore/box_bot/src/master/box_bot_description/)
