@@ -52,7 +52,7 @@ xhost +local:root
 
 To start a terminal inside the container type:
 ```bash
-docker exec -it ros2-it bash
+docker exec -it ros-it bash
 ```
 
 ### Setup without Docker
